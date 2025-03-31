@@ -1,0 +1,3 @@
+{"0":"3","1":"0","2":"0","3":"0","level":"info","message":"API Gateway is running on port:","service":"api-gateway","timestamp":"2025-03-23T17:56:29.181Z"}
+{"level":"info","message":"Identity Service Running on 3002","service":"api-gateway","timestamp":"2025-03-23T17:56:29.185Z"}
+{"level":"info","message":"Redis client connected","service":"api-gateway","timestamp":"2025-03-23T17:56:29.191Z"}
