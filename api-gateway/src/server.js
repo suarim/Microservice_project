@@ -28,8 +28,10 @@ const limiter = rateLimit({
             message: 'Too many requests'
         });
     },
-    // Using the default memory store for now to get the server running
-    // We'll implement Redis store properly after checking version compatibility
+    store: new RedisStore({
+            sendCommand: (...args) => redisClient.call(...args),
+        })
+    
 });
 
 app.use(limiter);
@@ -71,7 +73,7 @@ app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {
     logger.info('API Gateway is running on port:', process.env.PORT);
-    logger.info('Identity Service Running on 3002');
+    logger.info('Identity Service Running on 3000');
     
     // Log Redis connection status
     redisClient.on('connect', () => {
