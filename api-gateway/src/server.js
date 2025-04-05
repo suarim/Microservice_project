@@ -56,7 +56,7 @@ const proxyoptions = {
         next(err);
     }
 };
-
+console.log(process.env.IDENTITY_SERVICE_URL);
 app.use('/v1/auth', proxy(process.env.IDENTITY_SERVICE_URL, {
     ...proxyoptions,
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
@@ -72,8 +72,8 @@ app.use('/v1/auth', proxy(process.env.IDENTITY_SERVICE_URL, {
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {
-    logger.info('API Gateway is running on port:', process.env.PORT);
-    logger.info('Identity Service Running on 3000');
+    logger.info(`API Gateway is running on port:, ${process.env.PORT}`);
+    logger.info('Identity Service Running on 3002');
     
     // Log Redis connection status
     redisClient.on('connect', () => {
