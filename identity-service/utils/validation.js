@@ -12,4 +12,12 @@ const validateUserSchema = (data)=>{
     return schema.validate(data);
 }
 
-module.exports = validateUserSchema;
+const validatelogin = (data)=>{
+    const schema = JOI.object({
+        email: JOI.string().email().required(),
+        password: JOI.string().required().min(6).max(30),
+    })
+    return schema.validate(data);
+}
+
+module.exports = {validateUserSchema, validatelogin};

@@ -1,7 +1,8 @@
 const usermodel = require('../models/User');
 const logger = require('../utils/Logger');
-const validateUserSchema = require('../utils/validation');
+const {validateUserSchema,validatelogin} = require('../utils/validation');
 const generateToken = require('../utils/generateToken');
+
 const userRegistration = async (req,res)=>{
     try{
         console.log(req.body);
@@ -55,4 +56,51 @@ catch(err){
     }
 }
 
-module.exports = userRegistration;
+const loginuser = async (req,res)=>{
+
+    try {
+        const {error} = validatelogin(req.body);
+        if(error){
+            logger.warn('Validation Error');
+            return res.status(400).json({
+                status: false,
+                message: error.details[0].message
+            })
+        }
+        const {email, password} = req.body;
+        const user = await usermodel.findOne({email});
+        if(!user){
+            logger.warn('User Not Found');
+            return res.status(400).json({
+                status: false,
+                message: 'User Not Found'
+            })
+        }
+        const match = await user.comparePassword(password);
+        if(!match){
+            logger.warn('Invalid Password');
+            return res.status(400).json({
+                status: false,
+                message: 'Invalid Password'
+            })
+        }
+        const {accessToken, refreshToken} = await generateToken(user);
+        logger.info('Token Generated Successfully');
+        return res.status(200).json({
+            status: true,
+            message: 'Login Successfully',
+            user: user._id,
+            accessToken,
+            refreshToken
+        })
+    } catch (error) {
+        logger.error('Login Failed',error);
+        return res.status(500).json({
+            status: false,
+            message: 'Internal Server Error'
+        })
+    }
+    
+}
+
+module.exports = {userRegistration,loginuser};
