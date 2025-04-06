@@ -82,7 +82,7 @@ app.listen(PORT, () => {
   });
 });
 
-process.on('unhandledRejection',(reason,promise)=>{
-    logger.error('Unhandled Rejection at:',reason.stack || reason);
-    process.exit(1);
-})
+process.on('unhandledRejection', (reason) => {
+    console.error("Unhandled Rejection:", reason instanceof Error ? reason.stack : reason);
+  });
+  

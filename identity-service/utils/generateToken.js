@@ -11,7 +11,7 @@ const generateToken = async (user) =>{
     JWT_SECRET,{expiresIn: '15m'});
 
     const refreshToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 7);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await RefreshToken.create({
         token: refreshToken,
         user: user._id,
