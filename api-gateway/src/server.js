@@ -5,6 +5,7 @@ const Redis = require('ioredis');
 const helmet = require('helmet');
 const {rateLimit} = require('express-rate-limit');
 const {RedisStore} = require('rate-limit-redis');
+const {validateToken} = require('./middleware/authMiddleware')
 const proxy = require('express-http-proxy');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/Logger');
@@ -69,11 +70,25 @@ app.use('/v1/auth', proxy(process.env.IDENTITY_SERVICE_URL, {
     }
 }));
 
+app.use('/v1/posts',validateToken,proxy(process.env.POST_SERVICE_URL, {
+    ...proxyoptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers['Content-Type'] = 'application/json';
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.id;
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info('Response Received from Post Service:', proxyRes.statusCode);
+        return proxyResData;
+    }
+}));
+
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {
     logger.info(`API Gateway is running on port:, ${process.env.PORT}`);
-    logger.info('Identity Service Running on 3002');
+    logger.info('Identity Service Running on 3001');
+    logger.info('Post Service Running on 3002');
     
     // Log Redis connection status
     redisClient.on('connect', () => {

@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const postRouter = require('./routes/post-routes');
 const logger = require('./utils/logger');
+const {authenticationuser} =require('./middleware/authmiddleware');
 const app = express();
 const redisclient = new Redis(process.env.REDIS_URL);
 app.use(cors());
@@ -14,12 +15,12 @@ app.use(express.json());
 app.use((req,res,next)=>{
     logger.info(`Request method: ${req.method}, Request URL: ${req.url}`);
     next();
-})
+},postRouter)
 
-app.use((req,res,next)=>{
+app.use('/api/posts',(req,res,next)=>{
     req.redisclient = redisclient;
     next();
-})
+},postRouter)
 
 app.listen(process.env.PORT, () => {
     logger.info(`Server is running on port ${process.env.PORT}`);

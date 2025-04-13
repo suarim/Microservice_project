@@ -8,7 +8,7 @@ const generateToken = async (user) =>{
         id:user._id,
         name: user.username,   
     },
-    JWT_SECRET,{expiresIn: '15m'});
+    JWT_SECRET,{expiresIn: '3005m'});
 
     const refreshToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);

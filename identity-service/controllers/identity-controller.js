@@ -115,8 +115,9 @@ const RefreshTokenController = async (req,res) =>{
             })
         }
         const refresh_token = await RefreshToken.findOne({token: refreshtoken});
+        console.log(refresh_token);
         if(!refresh_token || refresh_token.expiresAt < Date.now()){
-            // console.log(refresh_token);
+            console.log(refresh_token);
          logger.error('Invalid Refresh Token');
             return res.status(400).json({
                 status: false,

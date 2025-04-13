@@ -11,7 +11,7 @@ const  routes = require('../routes/identity-service');
 const errorHandler = require('../middleware/errorHandler');
 
 MONGO_URI = "mongodb+srv://suarim:suarim@cluster0.ymjv6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-PORT=3002
+PORT=3001
 JWT_SECRET="JWT_SECRET"
 NODE_ENV="development"
 REDIS_URI="redis://localhost:6379"
