@@ -78,17 +78,77 @@ app.use('/v1/posts',validateToken,proxy(process.env.POST_SERVICE_URL, {
         return proxyReqOpts;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
-        logger.info('Response Received from Post Service:', proxyRes.statusCode);
+        if (proxyRes.statusCode !== 200) {
+            try {
+                const responseString = proxyResData.toString('utf8');
+                logger.error('Error response from Media Service:', proxyRes.statusCode, responseString);
+            } catch (err) {
+                logger.error('Error parsing proxyResData:', err.message);
+            }
+        }
+        logger.info('Response Received from Media Service:', proxyRes.statusCode);
+        return proxyResData;
+    }
+    
+}));
+
+app.use('/v1/media', validateToken, proxy(process.env.MEDIA_SERVICE_URL, {
+    ...proxyoptions,
+    // Fix multipart handling for file uploads
+    parseReqBody: false, // Don't parse request body for media endpoints
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.id;
+        
+        // Preserve original content-type header
+        if (srcReq.headers['content-type']) {
+            proxyReqOpts.headers['content-type'] = srcReq.headers['content-type'];
+        }
+        
+        // Preserve content-length header if present
+        if (srcReq.headers['content-length']) {
+            proxyReqOpts.headers['content-length'] = srcReq.headers['content-length'];
+        }
+        
+        return proxyReqOpts;
+    },
+    userResDecorator: async (proxyRes, proxyResData, userReq, userRes) => {
+        const contentType = proxyRes.headers['content-type'] || '';
+        logger.info('Media Service Response Content-Type:', contentType);
+        
+        // Transfer all headers from the service response
+        Object.keys(proxyRes.headers).forEach(key => {
+            userRes.setHeader(key, proxyRes.headers[key]);
+        });
+
+        // If response is JSON, parse it safely
+        if (contentType.includes('application/json')) {
+            try {
+                const jsonData = JSON.parse(proxyResData.toString('utf8'));
+                logger.info('Media Service Response:', jsonData);
+                return jsonData;
+            } catch (err) {
+                logger.error('Failed to parse JSON from Media Service:', err.message);
+                return {
+                    status: false,
+                    message: 'Failed to parse response from Media Service',
+                    error: err.message
+                };
+            }
+        }
+
+        logger.info('Returning raw data from Media Service');
+        // Otherwise, return raw data (e.g., for file downloads)
         return proxyResData;
     }
 }));
-
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {
     logger.info(`API Gateway is running on port:, ${process.env.PORT}`);
     logger.info('Identity Service Running on 3001');
     logger.info('Post Service Running on 3002');
+    logger.info('Media Service Running on 3003');
+
     
     // Log Redis connection status
     redisClient.on('connect', () => {
