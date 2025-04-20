@@ -19,6 +19,13 @@ const CreatePost = async (req, res) => {
         mediaIds: mediaIds || [] ,
     })
     await newlycreatedPost.save();
+    await publishEventRAbbit("post.created", {
+      postId: newlycreatedPost._id.toString(),
+      userId: req.user.userId.toString(),
+      mediaIds: newlycreatedPost.mediaIds,
+      content: newlycreatedPost.content,
+      createdAt: newlycreatedPost.createdAt,
+    })
     logger.info("Post created successfully");
     await invalidateCache(req);
     logger.info("Cache invalidated");

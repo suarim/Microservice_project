@@ -141,6 +141,31 @@ app.use('/v1/media', validateToken, proxy(process.env.MEDIA_SERVICE_URL, {
         return proxyResData;
     }
 }));
+
+app.use('/v1/search',validateToken,proxy(process.env.SEARCH_SERVICE_URL, {
+    ...proxyoptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers['Content-Type'] = 'application/json';
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.id;
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        if (proxyRes.statusCode !== 200) {
+            try {
+                const responseString = proxyResData.toString('utf8');
+                logger.error('Error response from Media Service:', proxyRes.statusCode, responseString);
+            } catch (err) {
+                logger.error('Error parsing proxyResData:', err.message);
+            }
+        }
+        logger.info('Response Received from Media Service:', proxyRes.statusCode);
+        return proxyResData;
+    }
+    
+}));
+
+
+
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {
@@ -148,6 +173,7 @@ app.listen(process.env.PORT, () => {
     logger.info('Identity Service Running on 3001');
     logger.info('Post Service Running on 3002');
     logger.info('Media Service Running on 3003');
+    logger.info('Search Service Running on 3004');
 
     
     // Log Redis connection status
