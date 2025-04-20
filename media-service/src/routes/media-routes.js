@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticationuser } = require('../middleware/authmiddleware');
-const { uploadMedia } = require('../controller/media-controller');
+const { uploadMedia,getallmedia } = require('../controller/media-controller');
 const multer = require('multer');
 const router = express.Router();
 
@@ -42,5 +42,6 @@ const uploadMiddleware = async (req, res, next) => {
 
 // Route
 router.post('/upload',authenticationuser, uploadMiddleware, uploadMedia);
+router.get('/getallmedia',authenticationuser,getallmedia);
 
 module.exports = router;

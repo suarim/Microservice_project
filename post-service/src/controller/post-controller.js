@@ -1,5 +1,6 @@
 const logger = require("../utils/logger");
 const Post = require("../models/Post");
+const { publishEventRAbbit } = require("../utils/rabbitmq");
 
 const invalidateCache = async (req) => {
   const keys = await req.redisclient.keys("posts:*");
@@ -95,6 +96,13 @@ const deletePost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
     logger.info("Post deleted successfully");
+
+    await publishEventRAbbit("post.deleted", {
+      postId: id,
+      userId: req.user.userId,
+      mediaIds: post.mediaIds,
+    })
+
     await invalidateCache(req);
     logger.info("Cache invalidated");
     return res.status(200).json({ message: "Post deleted successfully" });

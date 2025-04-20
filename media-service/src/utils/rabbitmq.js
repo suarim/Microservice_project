@@ -24,4 +24,20 @@ async function publishEventRAbbit(routingKey, message) {
     logger.info(`Message published to RabbitMQ with routing key: ${routingKey}`);
     
 }
-module.exports = {connecttoRabbitMQ,publishEventRAbbit}
+
+async function consumeEvent(routingKey, callback) {
+    if(!channel){
+        logger.error('RabbitMQ channel is not initialized');
+        return;
+    }
+    const queue = await channel.assertQueue('', { exclusive: true });
+    channel.bindQueue(queue.queue, EXCHANGE_NAME, routingKey);
+    channel.consume(queue.queue, (msg) => {
+        if (msg !== null) {
+            callback(JSON.parse(msg.content.toString()));
+            channel.ack(msg);
+        }
+    });
+    
+}
+module.exports = {connecttoRabbitMQ,publishEventRAbbit,consumeEvent}

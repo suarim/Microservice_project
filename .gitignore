@@ -1,3 +1,7 @@
 node_modules
 post-service/.env
 api-gateway/.env    
+.env
+combined.log
+error.log
+warn.log

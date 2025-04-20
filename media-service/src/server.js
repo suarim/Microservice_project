@@ -6,6 +6,8 @@ const helmet = require('helmet');
 const redis = require('ioredis');
 const logger = require('./utils/logger');
 const mediaRoutes = require('./routes/media-routes');
+const { connecttoRabbitMQ, consumeEvent } = require('./utils/rabbitmq');
+const { handlePostDelete } = require('./eventhandler/media-event-handler');
 const app = express();
 app.use(cors());
 app.use(helmet());
@@ -15,12 +17,22 @@ app.use((req,res,next)=>{
     next();
 })
 app.use('/api/media', mediaRoutes);
-app.listen(process.env.PORT, () => {
-    mongoose.connect(process.env.MONGO_URI).then(()=>{
-        logger.info('Connected to MongoDB');
+async function startServer() {
+    try {
+      await connecttoRabbitMQ();
+      logger.info('Connected to RabbitMQ');
+      await consumeEvent('post.deleted',handlePostDelete)
+      app.listen(process.env.PORT, () => {
         logger.info(`Server is running on port ${process.env.PORT}`);
-    })
-    .catch((error) => {
-        logger.error('Error connecting to MongoDB:', error);
-    });
-});
+        mongoose.connect(process.env.MONGO_URI).then(()=>{
+          logger.info('Connected to MongoDB');
+        }).catch((err)=>{
+          logger.error(err);
+        });
+      });
+    } catch (err) {
+      logger.error('Error starting server:', err);
+    }
+    
+  }
+  startServer()
